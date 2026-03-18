@@ -9,14 +9,18 @@ import {
   Handshake,
   CheckSquare,
   LayoutDashboard,
-  ChevronLeft,
-  ChevronRight,
+  PanelLeftClose,
+  PanelLeft,
   Package,
   type LucideIcon,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { motion, AnimatePresence } from "framer-motion";
 
 const iconMap: Record<string, LucideIcon> = {
@@ -41,22 +45,23 @@ export function CrmSidebar() {
   return (
     <motion.aside
       initial={false}
-      animate={{ width: collapsed ? 60 : 240 }}
-      transition={{ duration: 0.15, ease: "easeOut" }}
-      className="relative flex h-screen flex-col border-r border-border bg-zinc-950"
+      animate={{ width: collapsed ? 56 : 240 }}
+      transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+      className="relative flex h-screen flex-col border-r border-zinc-800/60 bg-zinc-950"
     >
       {/* Logo */}
-      <div className="flex h-14 items-center gap-2 px-4">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-sm font-bold text-white">
+      <div className="flex h-14 items-center gap-3 px-3">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 text-sm font-bold text-white shadow-lg shadow-blue-500/20">
           N
         </div>
         <AnimatePresence>
           {!collapsed && (
             <motion.span
-              initial={{ opacity: 0, width: 0 }}
-              animate={{ opacity: 1, width: "auto" }}
-              exit={{ opacity: 0, width: 0 }}
-              className="overflow-hidden whitespace-nowrap text-lg font-semibold tracking-tight text-zinc-100"
+              initial={{ opacity: 0, x: -8 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -8 }}
+              transition={{ duration: 0.15 }}
+              className="text-[15px] font-semibold tracking-tight text-zinc-100"
             >
               Nexus
             </motion.span>
@@ -64,28 +69,23 @@ export function CrmSidebar() {
         </AnimatePresence>
       </div>
 
-      <Separator className="bg-white/5" />
+      <Separator className="bg-zinc-800/40" />
 
-      {/* Dashboard link */}
-      <div className="px-2 pt-3 pb-1">
-        <Button
-          variant={pathname === "/workspace" ? "secondary" : "ghost"}
-          size="sm"
-          className={cn(
-            "w-full justify-start gap-2 text-zinc-400 hover:text-zinc-100",
-            pathname === "/workspace" && "bg-white/5 text-zinc-100"
-          )}
+      {/* Navigation */}
+      <div className="flex flex-col gap-0.5 px-2 pt-3">
+        <SidebarItem
+          icon={LayoutDashboard}
+          label="Dashboard"
+          active={pathname === "/workspace"}
+          collapsed={collapsed}
           onClick={() => router.push("/workspace")}
-        >
-          <LayoutDashboard className="h-4 w-4 shrink-0" />
-          {!collapsed && <span>Dashboard</span>}
-        </Button>
+        />
       </div>
 
-      {/* Modules */}
-      <div className="px-3 pt-4 pb-1">
+      {/* Modules section */}
+      <div className="px-3 pt-5 pb-1.5">
         {!collapsed && (
-          <span className="text-[11px] font-medium uppercase tracking-wider text-zinc-500">
+          <span className="text-[11px] font-semibold uppercase tracking-widest text-zinc-600">
             Modules
           </span>
         )}
@@ -98,57 +98,100 @@ export function CrmSidebar() {
               <motion.p
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="px-2 py-4 text-center text-xs text-zinc-600"
+                className="px-2 py-6 text-center text-xs text-zinc-700"
               >
                 Aucun module
               </motion.p>
             )
           ) : (
-            modules.map((mod) => {
-              const Icon = getIcon(mod.icon);
-              const isActive = activeModuleSlug === mod.slug;
-              return (
-                <motion.div
-                  key={mod.id}
-                  initial={{ opacity: 0, x: -12 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -12 }}
-                  transition={{ duration: 0.15 }}
-                >
-                  <Button
-                    variant={isActive ? "secondary" : "ghost"}
-                    size="sm"
-                    className={cn(
-                      "mb-0.5 w-full justify-start gap-2 text-zinc-400 hover:text-zinc-100",
-                      isActive && "bg-white/5 text-zinc-100"
-                    )}
-                    onClick={() => router.push(`/workspace/${mod.slug}`)}
+            <div className="flex flex-col gap-0.5">
+              {modules.map((mod) => {
+                const Icon = getIcon(mod.icon);
+                const isActive = activeModuleSlug === mod.slug;
+                return (
+                  <motion.div
+                    key={mod.id}
+                    initial={{ opacity: 0, x: -12 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -12 }}
+                    transition={{ duration: 0.2 }}
                   >
-                    <Icon className="h-4 w-4 shrink-0" />
-                    {!collapsed && <span className="truncate">{mod.name}</span>}
-                  </Button>
-                </motion.div>
-              );
-            })
+                    <SidebarItem
+                      icon={Icon}
+                      label={mod.name}
+                      active={isActive}
+                      collapsed={collapsed}
+                      onClick={() => router.push(`/workspace/${mod.slug}`)}
+                    />
+                  </motion.div>
+                );
+              })}
+            </div>
           )}
         </AnimatePresence>
       </ScrollArea>
 
       {/* Collapse toggle */}
-      <div className="border-t border-white/5 p-2">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 text-zinc-500 hover:text-zinc-300"
+      <Separator className="bg-zinc-800/40" />
+      <div className="p-2">
+        <button
           onClick={toggleSidebar}
+          className="flex h-8 w-full items-center justify-center rounded-md text-zinc-600 transition-colors hover:bg-zinc-800/50 hover:text-zinc-400"
         >
           {collapsed ? (
-            <ChevronRight className="h-4 w-4" />
+            <PanelLeft className="h-4 w-4" />
           ) : (
-            <ChevronLeft className="h-4 w-4" />
+            <PanelLeftClose className="h-4 w-4" />
           )}
-        </Button>
+        </button>
       </div>
     </motion.aside>
   );
+}
+
+function SidebarItem({
+  icon: Icon,
+  label,
+  active,
+  collapsed,
+  onClick,
+}: {
+  icon: LucideIcon;
+  label: string;
+  active: boolean;
+  collapsed: boolean;
+  onClick: () => void;
+}) {
+  const button = (
+    <button
+      onClick={onClick}
+      className={cn(
+        "group flex h-8 w-full items-center gap-2.5 rounded-md px-2.5 text-[13px] font-medium transition-all duration-150",
+        active
+          ? "bg-zinc-800/80 text-zinc-100 shadow-sm"
+          : "text-zinc-500 hover:bg-zinc-800/40 hover:text-zinc-300"
+      )}
+    >
+      <Icon
+        className={cn(
+          "h-4 w-4 shrink-0 transition-colors",
+          active ? "text-blue-400" : "text-zinc-600 group-hover:text-zinc-400"
+        )}
+      />
+      {!collapsed && <span className="truncate">{label}</span>}
+    </button>
+  );
+
+  if (collapsed) {
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>{button}</TooltipTrigger>
+        <TooltipContent side="right" className="text-xs">
+          {label}
+        </TooltipContent>
+      </Tooltip>
+    );
+  }
+
+  return button;
 }
