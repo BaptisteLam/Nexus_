@@ -2,9 +2,8 @@
 
 import type { ChatMessage as ChatMessageType } from "@/types/ai";
 import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
-import { motion } from "framer-motion";
 import { Check, Sparkles, User } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface ChatMessageProps {
   message: ChatMessageType;
@@ -17,7 +16,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.15 }}
+      transition={{ duration: 0.2 }}
       className={cn("flex gap-3", isUser ? "flex-row-reverse" : "flex-row")}
     >
       {/* Avatar */}
@@ -26,10 +25,14 @@ export function ChatMessage({ message }: ChatMessageProps) {
           "flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs",
           isUser
             ? "bg-blue-600 text-white"
-            : "bg-zinc-800 text-zinc-400 border border-border"
+            : "border border-zinc-800 bg-zinc-900 text-zinc-500"
         )}
       >
-        {isUser ? <User className="h-3.5 w-3.5" /> : <Sparkles className="h-3.5 w-3.5" />}
+        {isUser ? (
+          <User className="h-3.5 w-3.5" />
+        ) : (
+          <Sparkles className="h-3.5 w-3.5" />
+        )}
       </div>
 
       {/* Bubble */}
@@ -37,31 +40,30 @@ export function ChatMessage({ message }: ChatMessageProps) {
         className={cn(
           "max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed",
           isUser
-            ? "bg-blue-600 text-white"
-            : "bg-zinc-800/80 text-zinc-200 border border-border"
+            ? "rounded-tr-md bg-blue-600 text-white"
+            : "rounded-tl-md border border-zinc-800/60 bg-zinc-900/80 text-zinc-300"
         )}
       >
-        {/* Render markdown-ish text (bold support) */}
+        {/* Simple markdown: bold */}
         <div
           dangerouslySetInnerHTML={{
             __html: message.content
-              .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+              .replace(/\*\*(.*?)\*\*/g, "<strong class='font-semibold text-zinc-100'>$1</strong>")
               .replace(/\n/g, "<br/>"),
           }}
         />
 
         {/* Action badges */}
         {message.actions && message.actions.length > 0 && (
-          <div className="mt-2 flex flex-wrap gap-1.5">
+          <div className="mt-2.5 flex flex-wrap gap-1.5">
             {message.actions.map((action, i) => (
-              <Badge
+              <span
                 key={i}
-                variant="outline"
-                className="gap-1 border-green-500/30 bg-green-500/10 text-green-400 text-xs"
+                className="inline-flex items-center gap-1 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[11px] font-medium text-emerald-400"
               >
                 <Check className="h-3 w-3" />
                 {getActionLabel(action.type)}
-              </Badge>
+              </span>
             ))}
           </div>
         )}
